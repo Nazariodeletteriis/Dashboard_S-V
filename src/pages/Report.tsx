@@ -5,7 +5,6 @@ import { it } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Printer, BarChart3 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  LineChart, Line, CartesianGrid, Legend,
 } from 'recharts'
 import { Layout } from '@/components/layout/Layout'
 import { Avatar } from '@/components/ui/Avatar'

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { format, startOfMonth, parseISO, isToday, isFuture } from 'date-fns'
+import { format, startOfMonth, parseISO, isToday } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { Plus, Clock, Euro, Calendar, ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react'
 import { Layout } from '@/components/layout/Layout'
@@ -150,7 +150,6 @@ export default function MieiTurni() {
               {shifts.map((shift, i) => {
                 const date      = parseISO(shift.date)
                 const isNow     = isToday(date)
-                const upcoming  = isFuture(date)
                 return (
                   <motion.div
                     key={shift.id}

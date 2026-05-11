@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
-  startOfWeek, endOfWeek, isSameMonth, isToday, parseISO, isSameDay,
+  startOfWeek, endOfWeek, isSameMonth, isToday, isSameDay,
 } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Plus, X, Check, Clock } from 'lucide-react'
