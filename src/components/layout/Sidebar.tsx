@@ -1,8 +1,8 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Calendar, Users, BarChart3,
-  Wine, LogOut, ChevronLeft, ChevronRight, Clock,
+  Wine, LogOut, ChevronLeft, Clock,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
@@ -24,7 +24,15 @@ export function Sidebar() {
   const { profile, isAdmin, signOut } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const nav = isAdmin ? adminNav : employeeNav
+
+  // Logout: pulisce lo stato auth e poi naviga esplicitamente al login.
+  // Evita la race con AnimatePresence che a volte tratteneva la pagina protetta.
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <motion.aside
@@ -158,7 +166,7 @@ export function Sidebar() {
 
         {/* Logout */}
         <button
-          onClick={signOut}
+          onClick={handleSignOut}
           className={cn(
             'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-cream-dark hover:text-red-400 hover:bg-red-900/20 transition-all duration-200',
             collapsed && 'justify-center',
@@ -175,13 +183,18 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Collapse toggle */}
-      <button
+      {/* Collapse toggle — posizionato dentro al pannello (l'aside ha overflow-hidden) */}
+      <motion.button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-wine-600 border border-wine-500 flex items-center justify-center text-cream-muted hover:text-cream hover:bg-wine-500 transition-colors shadow-card z-10"
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.9 }}
+        animate={{ rotate: collapsed ? 180 : 0 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-wine-700 border-2 border-gold-500/60 flex items-center justify-center text-gold-300 hover:text-gold-200 hover:border-gold-400 transition-colors shadow-[0_0_14px_rgba(201,169,110,0.45)] z-20"
+        aria-label={collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'}
       >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
+        <ChevronLeft size={13} strokeWidth={2.5} />
+      </motion.button>
     </motion.aside>
   )
 }

@@ -66,16 +66,18 @@ export interface NewEmployee {
   hourly_rate?: number   // default 0
 }
 
-// Color palette for employees
+// Color palette for employees — fluo/neon: alta saturazione, massimo contrasto sul
+// background wine-800. Spezza intenzionalmente col tema bordeaux/oro per far "saltare"
+// ogni dipendente nelle viste fitte (calendario, grafici).
 export const EMPLOYEE_COLORS = [
-  '#c9a96e', // gold
-  '#7b2d3e', // wine
-  '#5a8a6e', // sage
-  '#4a7a9b', // steel blue
-  '#8b5e83', // mauve
-  '#c4813a', // amber
-  '#4e8a7a', // teal
-  '#9a6b4b', // sienna
-  '#6b7c93', // slate
-  '#a85c7a', // rose
+  '#FF2D6F', // hot pink fluo
+  '#00E5C7', // turchese fluo
+  '#FFD60A', // giallo zafferano brillante
+  '#A855F7', // viola elettrico
+  '#FF6B1A', // arancio neon
+  '#22D3FF', // ciano elettrico
+  '#A0E635', // verde lime acido
+  '#FF45E5', // magenta fluo
+  '#14F195', // verde fluo
+  '#FF8AD9', // rosa caramella
 ]

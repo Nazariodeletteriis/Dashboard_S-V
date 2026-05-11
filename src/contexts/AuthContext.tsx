@@ -59,7 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      // Anche se il network call fallisce (es. offline o token già scaduto),
+      // azzeriamo comunque lo stato locale per evitare schermo "incollato".
+    }
+    setSession(null)
+    setUser(null)
     setProfile(null)
   }
 

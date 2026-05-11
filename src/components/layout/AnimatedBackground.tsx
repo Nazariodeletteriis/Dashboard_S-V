@@ -25,6 +25,20 @@ export function AnimatedBackground({ variant = 'subtle' }: AnimatedBackgroundPro
     [variant],
   )
 
+  // Bollicine champagne — partono dal fondo schermo e risalgono con wobble laterale
+  const bubbles = useMemo(
+    () => Array.from({ length: variant === 'rich' ? 26 : 18 }, (_, i) => ({
+      id:       i,
+      left:     Math.random() * 100,                // % orizzontale di partenza
+      size:     3 + Math.random() * 6,              // 3–9 px
+      duration: 10 + Math.random() * 10,            // 10–20 s — più piccole = più veloci sembra
+      delay:    Math.random() * 14,                 // staggered start
+      opacity:  0.22 + Math.random() * 0.38,        // 0.22–0.60
+      wobble:   8 + Math.random() * 22,             // ampiezza dondolio in px
+    })),
+    [variant],
+  )
+
   const opacity = variant === 'rich' ? 0.45 : 0.25
 
   return (
@@ -112,6 +126,37 @@ export function AnimatedBackground({ variant = 'subtle' }: AnimatedBackgroundPro
             delay:    s.delay,
             repeat:   Infinity,
             ease:    'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Bollicine champagne — risalgono dal fondo dello schermo con wobble laterale */}
+      {bubbles.map(b => (
+        <motion.span
+          key={`bubble-${b.id}`}
+          aria-hidden
+          className="absolute rounded-full"
+          style={{
+            left:   `${b.left}%`,
+            bottom: -12,
+            width:  b.size,
+            height: b.size,
+            // Effetto "vetro": highlight in alto a sinistra, ombra oro leggera sotto
+            background:
+              'radial-gradient(circle at 35% 28%, rgba(255,250,236,0.92) 0%, rgba(240,230,211,0.45) 45%, rgba(201,169,110,0.10) 100%)',
+            boxShadow: `0 0 ${Math.max(2, b.size * 0.7)}px rgba(232,213,174,0.35)`,
+            willChange: 'transform, opacity',
+          }}
+          animate={{
+            y:       ['0vh', '-110vh'],
+            x:       [0, b.wobble, -b.wobble * 0.7, b.wobble * 0.4, 0],
+            opacity: [0, b.opacity, b.opacity, b.opacity * 0.5, 0],
+          }}
+          transition={{
+            duration: b.duration,
+            delay:    b.delay,
+            repeat:   Infinity,
+            ease:    'linear',
           }}
         />
       ))}
