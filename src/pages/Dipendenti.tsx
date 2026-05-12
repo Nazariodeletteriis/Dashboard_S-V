@@ -126,7 +126,7 @@ export default function Dipendenti() {
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
                       <Avatar name={emp.name} color={emp.color} size="lg" />
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => { setEditTarget(emp); setEditForm({ name: emp.name, employment_type: emp.employment_type, color: emp.color, hourly_rate: emp.hourly_rate }); setFormError(null) }}
                           className="p-1.5 rounded-lg hover:bg-wine-600/50 text-cream-darker hover:text-gold-400 transition-colors"

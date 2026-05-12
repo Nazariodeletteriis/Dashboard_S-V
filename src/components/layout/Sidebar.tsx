@@ -39,7 +39,7 @@ export function Sidebar() {
       initial={false}
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="relative flex flex-col h-screen bg-wine-800 border-r border-wine-700/50 overflow-hidden flex-shrink-0"
+      className="relative hidden lg:flex flex-col h-screen bg-wine-800 border-r border-wine-700/50 overflow-hidden flex-shrink-0"
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-6 border-b border-wine-700/30">

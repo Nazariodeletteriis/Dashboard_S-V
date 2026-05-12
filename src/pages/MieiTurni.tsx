@@ -63,13 +63,13 @@ export default function MieiTurni() {
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {[
             { label: 'Ore questo mese',  value: formatHours(totalHours), icon: Clock,    color: 'text-gold-500',     highlight: false },
             { label: 'Turni registrati', value: totalShifts.toString(),  icon: CheckCircle, color: 'text-emerald-400', highlight: false },
             {
               label: 'Guadagno mese',
-              value: hourlyRate > 0 ? formatCurrency(totalPay) : '—',
+              value: hourlyRate > 0 ? formatCurrency(totalPay, true) : '—',
               icon:  Euro,
               color: 'text-gold-400',
               highlight: true,
@@ -80,15 +80,15 @@ export default function MieiTurni() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
-              className={`border rounded-2xl p-4 text-center ${
+              className={`border rounded-2xl p-3 sm:p-4 text-center ${
                 highlight
                   ? 'bg-gradient-to-br from-gold-500/10 to-wine-800 border-gold-500/30'
                   : 'bg-wine-800 border-wine-700/40'
               }`}
             >
-              <Icon size={20} className={`${color} mx-auto mb-2`} />
-              <p className={`text-xl font-semibold ${highlight ? 'text-gold-400' : 'text-cream'}`}>{value}</p>
-              <p className="text-xs text-cream-darker mt-0.5">{label}</p>
+              <Icon size={18} className={`${color} mx-auto mb-1.5 sm:mb-2`} />
+              <p className={`text-lg sm:text-xl font-semibold leading-tight ${highlight ? 'text-gold-400' : 'text-cream'}`}>{value}</p>
+              <p className="text-[10px] sm:text-xs text-cream-darker mt-0.5 leading-tight">{label}</p>
             </motion.div>
           ))}
         </div>

@@ -100,7 +100,7 @@ export default function Report() {
             {selectedEmployee === 'all' && (
               <>
                 {/* Monthly overview cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                   {[
                     { label: 'Totale ore',     value: formatHours(stats.reduce((a, s) => a + s.total_hours, 0)) },
                     { label: 'Totale turni',   value: stats.reduce((a, s) => a + s.shift_count, 0).toString() },
@@ -159,7 +159,58 @@ export default function Report() {
                   className="bg-wine-800 border border-wine-700/40 rounded-2xl p-5 print:shadow-none"
                 >
                   <h3 className="text-sm font-semibold text-cream mb-4">Dettaglio mensile — {format(currentMonth, 'MMMM yyyy', { locale: it })}</h3>
-                  <div className="overflow-x-auto">
+
+                  {/* MOBILE (< md): card list */}
+                  <div className="md:hidden space-y-2 print:hidden">
+                    {stats.length === 0 ? (
+                      <p className="py-8 text-center text-cream-darker">Nessun turno registrato</p>
+                    ) : stats.map((s, i) => {
+                      const emp = employees.find(e => e.id === s.employee_id)
+                      return (
+                        <motion.div
+                          key={s.employee_id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.04 * i }}
+                          className="p-3 rounded-xl bg-wine-700/20 border border-wine-600/20"
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <Avatar name={s.name} color={s.color} size="sm" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-cream font-medium truncate">{s.name}</p>
+                              {emp && <div className="mt-0.5"><EmploymentBadge type={emp.employment_type} /></div>}
+                            </div>
+                            {s.hourly_rate > 0 && (
+                              <p className="text-base font-semibold text-gold-400">{formatCurrency(s.total_pay)}</p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-xs pt-2 border-t border-wine-600/20">
+                            <div>
+                              <p className="text-cream-darker">Turni</p>
+                              <p className="text-cream font-medium">{s.shift_count}</p>
+                            </div>
+                            <div>
+                              <p className="text-cream-darker">Ore</p>
+                              <p className="text-cream font-medium">{formatHours(s.total_hours)}</p>
+                            </div>
+                            <div>
+                              <p className="text-cream-darker">Paga/h</p>
+                              <p className="text-cream font-medium">{s.hourly_rate > 0 ? formatCurrency(s.hourly_rate) : '—'}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )
+                    })}
+                    {stats.length > 0 && (
+                      <div className="flex items-center justify-between pt-3 border-t border-wine-600/40 text-sm">
+                        <span className="text-xs text-cream-darker uppercase tracking-wider">Totale</span>
+                        <span className="font-bold text-gold-400">{formatCurrency(stats.reduce((a, s) => a + s.total_pay, 0))}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DESKTOP (md+): tabella + stampa */}
+                  <div className="hidden md:block overflow-x-auto print:block">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-xs text-cream-darker uppercase tracking-wider border-b border-wine-700/30">
@@ -217,6 +268,8 @@ export default function Report() {
                 </motion.div>
               </>
             )}
+
+            {/* Chiusura riepilogo all-employees */}
 
             {/* Single employee view */}
             {selectedEmployee !== 'all' && selectedEmp && (
@@ -297,6 +350,57 @@ export default function Report() {
                   {employeeShifts.length === 0 ? (
                     <p className="text-center text-cream-darker py-8">Nessun turno registrato</p>
                   ) : (
+                    <>
+                    {/* MOBILE (< md): card list */}
+                    <div className="md:hidden space-y-2 print:hidden">
+                      {employeeShifts.map((shift, i) => {
+                        const pay = shift.hours * (selectedEmp.hourly_rate ?? 0)
+                        return (
+                          <motion.div
+                            key={shift.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.03 }}
+                            className="p-3 rounded-xl bg-wine-700/20 border border-wine-600/20"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-sm text-cream font-medium capitalize">
+                                  {format(parseISO(shift.date), 'EEE d MMM', { locale: it })}
+                                </p>
+                                <p className="text-xs text-cream-darker mt-0.5">
+                                  {shift.start_time} – {shift.end_time} · {formatHours(shift.hours)}
+                                </p>
+                                {shift.notes && (
+                                  <p className="text-xs text-cream-darker italic mt-1 truncate">"{shift.notes}"</p>
+                                )}
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                {selectedEmp.hourly_rate > 0 && (
+                                  <p className="text-sm text-gold-400 font-semibold">{formatCurrency(pay)}</p>
+                                )}
+                                <p className={`text-[10px] mt-0.5 ${shift.approved ? 'text-emerald-400' : 'text-gold-400'}`}>
+                                  {shift.approved ? '✓ Approvato' : '⏳ In attesa'}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )
+                      })}
+                      <div className="flex items-center justify-between pt-3 border-t border-wine-600/40 text-sm">
+                        <span className="text-xs text-cream-darker uppercase tracking-wider">
+                          Totale {formatHours(employeeShifts.reduce((a, s) => a + s.hours, 0))}
+                        </span>
+                        <span className="font-bold text-gold-400">
+                          {selectedEmp.hourly_rate > 0
+                            ? formatCurrency(employeeShifts.reduce((a, s) => a + s.hours, 0) * selectedEmp.hourly_rate)
+                            : '—'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* DESKTOP (md+): tabella */}
+                    <div className="hidden md:block">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-xs text-cream-darker uppercase tracking-wider border-b border-wine-700/30">
@@ -351,6 +455,8 @@ export default function Report() {
                         </tr>
                       </tfoot>
                     </table>
+                    </div>
+                    </>
                   )}
                 </motion.div>
               </div>

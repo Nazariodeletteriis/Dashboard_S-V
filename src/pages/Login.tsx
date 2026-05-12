@@ -152,7 +152,7 @@ export default function Login() {
           transition={{ delay: 0.2, duration: 1 }}
         />
 
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           {/* Logo + nome */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

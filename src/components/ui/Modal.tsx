@@ -44,21 +44,22 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
             animate={{ opacity: 1, scale: 1,    y: 0  }}
             exit={  { opacity: 0, scale: 0.92, y: 16  }}
             transition={{ type: 'spring', duration: 0.3, bounce: 0.15 }}
-            className={`relative w-full ${widths[size]} bg-wine-800 border border-wine-600/50 rounded-2xl shadow-card`}
+            className={`relative w-full ${widths[size]} max-h-[90vh] flex flex-col bg-wine-800 border border-wine-600/50 rounded-2xl shadow-card overflow-hidden`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-wine-700/50">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-wine-700/50 flex-shrink-0">
               <h2 className="text-base font-semibold text-cream">{title}</h2>
               <button
                 onClick={onClose}
-                className="text-cream-dark hover:text-cream transition-colors p-1 rounded-lg hover:bg-wine-700"
+                aria-label="Chiudi"
+                className="text-cream-dark hover:text-cream transition-colors p-1 rounded-lg hover:bg-wine-700 min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="px-6 py-5">{children}</div>
+            {/* Body — scrollabile per form lunghi su viewport corte */}
+            <div className="px-6 py-5 overflow-y-auto scrollbar-thin">{children}</div>
           </motion.div>
         </motion.div>
       )}

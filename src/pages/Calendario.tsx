@@ -127,13 +127,14 @@ export default function Calendario() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {/* Filter by employee */}
             {isAdmin && (
               <select
                 value={filterEmployee}
                 onChange={e => setFilterEmployee(e.target.value)}
-                className="bg-wine-800 border border-wine-600/50 rounded-xl px-3 py-2 text-sm text-cream focus:outline-none focus:border-gold-500/60 cursor-pointer"
+                className="flex-1 sm:flex-none bg-wine-800 border border-wine-600/50 rounded-xl px-3 py-2 text-sm text-cream focus:outline-none focus:border-gold-500/60 cursor-pointer"
+                aria-label="Filtra per dipendente"
               >
                 <option value="all" className="bg-wine-800">Tutti i dipendenti</option>
                 {employees.map(e => (
@@ -147,7 +148,8 @@ export default function Calendario() {
               icon={<Plus size={15} />}
               onClick={() => openAddModal()}
             >
-              Aggiungi turno
+              <span className="hidden sm:inline">Aggiungi turno</span>
+              <span className="sm:hidden">Turno</span>
             </Button>
           </div>
         </div>
@@ -175,55 +177,109 @@ export default function Calendario() {
               <div className="w-6 h-6 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-7">
-              {days.map((day, idx) => {
-                const dayShifts  = shiftsForDay(day)
-                const inMonth    = isSameMonth(day, currentMonth)
-                const todayDay   = isToday(day)
-                const isSelected = selectedDay && isSameDay(day, selectedDay)
+            <>
+              {/* MOBILE (< lg): mese compatto coi pallini colorati */}
+              <div className="grid grid-cols-7 lg:hidden">
+                {days.map((day, idx) => {
+                  const dayShifts  = shiftsForDay(day)
+                  const inMonth    = isSameMonth(day, currentMonth)
+                  const todayDay   = isToday(day)
+                  const isSelected = selectedDay && isSameDay(day, selectedDay)
+                  // Colori unici (fino a 4 pallini, +N oltre)
+                  const dotColors  = Array.from(new Set(dayShifts.map(s => s.profile?.color).filter(Boolean))) as string[]
 
-                return (
-                  <motion.button
-                    key={idx}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => {
-                      setSelectedDay(day)
-                      setDayOpen(true)
-                    }}
-                    className={`
-                      min-h-[88px] p-2 text-left border-b border-r border-wine-700/20 transition-colors
-                      ${!inMonth ? 'opacity-30' : ''}
-                      ${todayDay ? 'bg-wine-700/30' : 'hover:bg-wine-700/20'}
-                      ${isSelected ? 'ring-1 ring-inset ring-gold-500/40' : ''}
-                    `}
-                  >
-                    <span className={`
-                      text-xs font-semibold inline-flex items-center justify-center w-6 h-6 rounded-full mb-1
-                      ${todayDay ? 'bg-gold-500 text-wine-900' : 'text-cream-muted'}
-                    `}>
-                      {format(day, 'd')}
-                    </span>
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSelectedDay(day)
+                        setDayOpen(true)
+                      }}
+                      className={`
+                        relative aspect-square flex flex-col items-center justify-center gap-1 p-1
+                        border-b border-r border-wine-700/20 transition-colors
+                        ${!inMonth ? 'opacity-30' : ''}
+                        ${todayDay ? 'bg-wine-700/30' : 'active:bg-wine-700/30'}
+                        ${isSelected ? 'ring-1 ring-inset ring-gold-500/40' : ''}
+                      `}
+                      aria-label={`${format(day, 'd MMMM', { locale: it })}, ${dayShifts.length} turn${dayShifts.length === 1 ? 'o' : 'i'}`}
+                    >
+                      <span className={`
+                        text-sm font-semibold inline-flex items-center justify-center w-7 h-7 rounded-full
+                        ${todayDay ? 'bg-gold-500 text-wine-900' : 'text-cream-muted'}
+                      `}>
+                        {format(day, 'd')}
+                      </span>
 
-                    {/* Shifts dots */}
-                    <div className="space-y-0.5">
-                      {dayShifts.slice(0, 3).map(shift => (
-                        <div
-                          key={shift.id}
-                          className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs truncate"
-                          style={{ background: `${shift.profile?.color ?? '#7b2d3e'}22`, color: shift.profile?.color ?? '#c9a96e' }}
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: shift.profile?.color }} />
-                          <span className="truncate">{shift.profile?.name?.split(' ')[0]}</span>
-                        </div>
-                      ))}
-                      {dayShifts.length > 3 && (
-                        <p className="text-xs text-cream-darker pl-1">+{dayShifts.length - 3}</p>
-                      )}
-                    </div>
-                  </motion.button>
-                )
-              })}
-            </div>
+                      {/* Dots colorati per dipendente unico, max 4 visibili */}
+                      <div className="flex items-center justify-center gap-0.5 min-h-[8px]">
+                        {dotColors.slice(0, 4).map((c, i) => (
+                          <span
+                            key={i}
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: c, boxShadow: `0 0 4px ${c}66` }}
+                          />
+                        ))}
+                        {dotColors.length > 4 && (
+                          <span className="text-[9px] text-cream-darker leading-none">+{dotColors.length - 4}</span>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* DESKTOP (lg+): griglia classica con nomi nelle celle */}
+              <div className="hidden lg:grid grid-cols-7">
+                {days.map((day, idx) => {
+                  const dayShifts  = shiftsForDay(day)
+                  const inMonth    = isSameMonth(day, currentMonth)
+                  const todayDay   = isToday(day)
+                  const isSelected = selectedDay && isSameDay(day, selectedDay)
+
+                  return (
+                    <motion.button
+                      key={idx}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => {
+                        setSelectedDay(day)
+                        setDayOpen(true)
+                      }}
+                      className={`
+                        min-h-[88px] p-2 text-left border-b border-r border-wine-700/20 transition-colors
+                        ${!inMonth ? 'opacity-30' : ''}
+                        ${todayDay ? 'bg-wine-700/30' : 'hover:bg-wine-700/20'}
+                        ${isSelected ? 'ring-1 ring-inset ring-gold-500/40' : ''}
+                      `}
+                    >
+                      <span className={`
+                        text-xs font-semibold inline-flex items-center justify-center w-6 h-6 rounded-full mb-1
+                        ${todayDay ? 'bg-gold-500 text-wine-900' : 'text-cream-muted'}
+                      `}>
+                        {format(day, 'd')}
+                      </span>
+
+                      {/* Shifts dots */}
+                      <div className="space-y-0.5">
+                        {dayShifts.slice(0, 3).map(shift => (
+                          <div
+                            key={shift.id}
+                            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs truncate"
+                            style={{ background: `${shift.profile?.color ?? '#7b2d3e'}22`, color: shift.profile?.color ?? '#c9a96e' }}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: shift.profile?.color }} />
+                            <span className="truncate">{shift.profile?.name?.split(' ')[0]}</span>
+                          </div>
+                        ))}
+                        {dayShifts.length > 3 && (
+                          <p className="text-xs text-cream-darker pl-1">+{dayShifts.length - 3}</p>
+                        )}
+                      </div>
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </>
           )}
         </motion.div>
 

@@ -74,14 +74,14 @@ export default function Dashboard() {
         <div className="space-y-6">
 
           {/* Stats row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatsCard label="Dipendenti"   value={employees.length}     icon={Users}    color="gold"  delay={0}    />
             <StatsCard label="Ore mese"     value={totalHours}           icon={Clock}    color="wine"  delay={0.08} suffix="h" />
             <StatsCard label="Costo mese"   value={totalPay}             icon={Euro}     color="gold"  delay={0.16} format="currency" />
             <StatsCard label="Da approvare" value={pendingShifts.length} icon={AlertCircle} color="blue" delay={0.24} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
             {/* Chart */}
             <motion.div
@@ -92,7 +92,8 @@ export default function Dashboard() {
             >
               <h3 className="text-sm font-semibold text-cream mb-4">Ore per dipendente — {format(currentMonth, 'MMMM', { locale: it })}</h3>
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={220}>
+                <div className="h-[180px] sm:h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                     <XAxis dataKey="name" tick={{ fill: '#8b7a6b', fontSize: 12 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#8b7a6b', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -108,6 +109,7 @@ export default function Dashboard() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-48 text-cream-darker text-sm">
                   Nessun turno registrato questo mese
@@ -171,7 +173,40 @@ export default function Dashboard() {
             className="bg-wine-800 border border-wine-700/40 rounded-2xl p-5"
           >
             <h3 className="text-sm font-semibold text-cream mb-4">Riepilogo dipendenti — {format(currentMonth, 'MMMM', { locale: it })}</h3>
-            <div className="overflow-x-auto">
+
+            {/* MOBILE (< md): card list */}
+            <div className="md:hidden space-y-2">
+              {employees.length === 0 ? (
+                <p className="text-center text-cream-darker py-6">Nessun dipendente trovato</p>
+              ) : employees.map((emp, i) => {
+                const empStats = stats.find(s => s.employee_id === emp.id)
+                return (
+                  <motion.div
+                    key={emp.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.04 * i }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-wine-700/20 border border-wine-600/20"
+                  >
+                    <Avatar name={emp.name} color={emp.color} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-cream font-medium truncate">{emp.name}</p>
+                      <p className="text-xs text-cream-darker">
+                        {empStats?.shift_count ?? 0} turni · {empStats ? formatHours(empStats.total_hours) : '0h'}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {emp.hourly_rate > 0 && empStats
+                        ? <p className="text-sm text-gold-400 font-semibold">{formatCurrency(empStats.total_pay)}</p>
+                        : <p className="text-xs text-cream-darker">—</p>}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+
+            {/* DESKTOP (md+): tabella */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-cream-darker uppercase tracking-wider border-b border-wine-700/30">
