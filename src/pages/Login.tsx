@@ -116,8 +116,12 @@ export default function Login() {
     const { error } = await signIn(email, password)
     if (error) {
       setError('Email o password non corretti. Riprova.')
+      setSubmitting(false)
+      return
     }
-    setSubmitting(false)
+    // Non resetto submitting: lascio il pulsante in loading finché AuthContext
+    // monta user+profile e parte il Navigate. Il LoadingOverlay globale copre
+    // il gap visivo (transitioning=true nel context fino a profilo pronto).
   }
 
   return (

@@ -38,8 +38,10 @@ export function Header({ title, subtitle }: HeaderProps) {
 
   const handleSignOut = async () => {
     setMenuOpen(false)
-    await signOut()
+    // Navigare PRIMA evita il flash della pagina protetta che si smonta;
+    // il LoadingOverlay (transitioning) copre comunque tutto il gap.
     navigate('/login', { replace: true })
+    await signOut()
   }
 
   return (

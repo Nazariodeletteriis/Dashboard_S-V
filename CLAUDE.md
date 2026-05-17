@@ -54,14 +54,27 @@ Le policy originali causavano **loop infinito** per ricorsione.
 Fix: funzione `public.is_admin()` con `SECURITY DEFINER` che bypassa RLS.
 
 Policy attive:
-- `profiles_select`: `id = auth.uid() OR is_admin()`
+- `profiles_select_authenticated`: `true` (tutti gli authenticated → migration **004**)
 - `profiles_update`: `id = auth.uid() OR is_admin()`
 - `profiles_insert`: `is_admin()`
 - `profiles_delete`: `is_admin()`
-- `shifts_select`: `employee_id = auth.uid() OR is_admin()`
+- `shifts_select_authenticated`: `true` (tutti gli authenticated → migration **004**)
 - `shifts_insert`: `employee_id = auth.uid() OR is_admin()`
 - `shifts_update`: `is_admin()`
 - `shifts_delete`: `is_admin()`
+
+### Visibility team (migration 004_team_visibility.sql)
+Richiesta cliente: i dipendenti vogliono **vedere i turni di tutti** per fare accoppiamenti idonei.
+- RLS SELECT aperta su `shifts` e `profiles` a tutti gli authenticated.
+- **Trade-off documentato:** un dipendente che usasse il token JS direttamente potrebbe leggere `email`/`hourly_rate` dei colleghi. Lato client filtriamo le colonne (`useEmployees`/`useShifts` selezionano solo `id, name, color, employment_type, role` per i non-admin) quindi nella UI non appaiono mai. Per la vinoteca il trade-off è accettato. Se in futuro serve hardening: creare view `team_members` con grant SELECT solo a quella.
+
+## Transizioni auth (fix maggio 2026)
+Richiesta cliente: "schermo nero al logout, manca loader dopo il login".
+- `AuthContext` espone `transitioning` (true durante signIn/signOut finché la UI corretta non è pronta).
+- `<LoadingOverlay>` montato in `App.tsx` copre il gap visivo con spinner dorato su bg-wine-gradient.
+- Rimosso `AnimatePresence mode="wait"` da `AppRoutes` (causava il buco "nero" durante l'exit anim).
+- `Sidebar.handleSignOut` e `Header.handleSignOut` navigano a `/login` **prima** di `signOut()` per evitare il flash della pagina protetta che si smonta.
+- `Login.tsx` mantiene `submitting=true` anche dopo signIn success — l'overlay globale gestisce l'attesa fino a redirect.
 
 ## Bug noti / risolti
 1. **Loop infinito fetch** ← **RISOLTO** in `useShifts.ts`

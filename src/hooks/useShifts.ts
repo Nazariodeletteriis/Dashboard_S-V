@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Shift, NewShift, MonthlyStats } from '@/types'
 import { format, startOfMonth, endOfMonth, differenceInMinutes, parse } from 'date-fns'
+import { useAuth } from '@/contexts/AuthContext'
 
 function calcHours(startTime: string, endTime: string): number {
   const base = new Date()
@@ -13,6 +14,7 @@ function calcHours(startTime: string, endTime: string): number {
 }
 
 export function useShifts(month?: Date, employeeId?: string) {
+  const { isAdmin, profile: me } = useAuth()
   const [shifts, setShifts] = useState<Shift[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,9 +25,15 @@ export function useShifts(month?: Date, employeeId?: string) {
 
   const fetchShifts = useCallback(async () => {
     setLoading(true)
+    // Non-admin: niente hourly_rate dei colleghi nel JOIN. Il proprio rate
+    // viene comunque letto via AuthContext (profile.hourly_rate) ed iniettato
+    // sotto sui turni dell'utente loggato.
+    const profileCols = isAdmin
+      ? 'id,name,color,employment_type,role,hourly_rate'
+      : 'id,name,color,employment_type,role'
     let query = supabase
       .from('shifts')
-      .select('*, profile:profiles(id,name,color,employment_type,role,hourly_rate)')
+      .select(`*, profile:profiles(${profileCols})`)
       .order('date', { ascending: true })
       .order('start_time', { ascending: true })
 
@@ -42,10 +50,21 @@ export function useShifts(month?: Date, employeeId?: string) {
     if (error) {
       setError(error.message)
     } else {
-      setShifts(data as Shift[])
+      let rows = data as Shift[]
+      // Per i non-admin, re-inietto il MIO hourly_rate sui MIEI turni così
+      // i conteggi €/mese e per-turno (MieiTurni.tsx) continuano a funzionare.
+      if (!isAdmin && me?.id && typeof me.hourly_rate === 'number') {
+        rows = rows.map(s => {
+          if (s.employee_id === me.id && s.profile) {
+            return { ...s, profile: { ...s.profile, hourly_rate: me.hourly_rate } }
+          }
+          return s
+        })
+      }
+      setShifts(rows)
     }
     setLoading(false)
-  }, [monthKey, employeeId])
+  }, [monthKey, employeeId, isAdmin, me?.id, me?.hourly_rate])
 
   useEffect(() => {
     fetchShifts()

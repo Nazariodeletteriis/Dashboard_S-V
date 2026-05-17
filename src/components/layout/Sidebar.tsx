@@ -27,11 +27,13 @@ export function Sidebar() {
   const navigate = useNavigate()
   const nav = isAdmin ? adminNav : employeeNav
 
-  // Logout: pulisce lo stato auth e poi naviga esplicitamente al login.
-  // Evita la race con AnimatePresence che a volte tratteneva la pagina protetta.
+  // Logout: prima naviga al login, poi pulisce lo stato auth.
+  // Navigando PRIMA, evitiamo che ProtectedRoute renderizzi un fallback "nero"
+  // mentre user/profile vanno a null. Il LoadingOverlay (transitioning=true)
+  // copre comunque l'intero gap di transizione.
   const handleSignOut = async () => {
-    await signOut()
     navigate('/login', { replace: true })
+    await signOut()
   }
 
   return (

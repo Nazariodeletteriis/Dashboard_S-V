@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null
   profile: Profile | null
   loading: boolean
+  transitioning: boolean
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   isAdmin: boolean
@@ -20,6 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  // transitioning copre il gap visivo tra signIn/signOut e il successivo render della UI corretta
+  const [transitioning, setTransitioning] = useState(false)
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -52,13 +55,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Chiude il transitioning una volta che la UI corretta è pronta:
+  // - dopo signIn: user + profile presenti
+  // - dopo signOut: nessun user
+  useEffect(() => {
+    if (!transitioning) return
+    if ((user && profile) || (!user && !profile)) {
+      const t = setTimeout(() => setTransitioning(false), 350)
+      return () => clearTimeout(t)
+    }
+  }, [transitioning, user, profile])
+
   const signIn = async (email: string, password: string) => {
+    setTransitioning(true)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
+    if (error) {
+      setTransitioning(false)
+      return { error: error.message }
+    }
     return { error: null }
   }
 
   const signOut = async () => {
+    setTransitioning(true)
     try {
       await supabase.auth.signOut()
     } catch {
@@ -73,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = profile?.role === 'admin'
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signIn, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, transitioning, signIn, signOut, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

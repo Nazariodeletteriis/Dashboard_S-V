@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { LoadingOverlay } from '@/components/ui/LoadingOverlay'
 import Login      from '@/pages/Login'
 import Dashboard  from '@/pages/Dashboard'
 import Calendario from '@/pages/Calendario'
@@ -13,7 +13,7 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-wine-900 flex items-center justify-center">
+      <div className="min-h-screen bg-wine-gradient flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-cream-darker text-sm">Caricamento...</p>
@@ -29,14 +29,28 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 }
 
 function AppRoutes() {
-  const { profile, loading } = useAuth()
-  const location = useLocation()
+  const { profile, loading, transitioning, user } = useAuth()
 
-  if (loading) return null
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-wine-gradient flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-cream-darker text-sm">Caricamento...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
+    <>
+      {/* Overlay che copre i micro-gap di transizione login/logout */}
+      <LoadingOverlay
+        open={transitioning}
+        label={user ? 'Accesso in corso...' : 'Disconnessione...'}
+      />
+
+      <Routes>
         <Route path="/login" element={<Login />} />
 
         {/* Admin routes */}
@@ -61,16 +75,18 @@ function AppRoutes() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </AnimatePresence>
+    </>
   )
 }
 
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <div className="min-h-screen bg-wine-gradient">
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </div>
     </BrowserRouter>
   )
 }

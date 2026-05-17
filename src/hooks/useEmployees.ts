@@ -2,26 +2,33 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Profile, NewEmployee } from '@/types'
 import { EMPLOYEE_COLORS } from '@/types'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function useEmployees() {
+  const { isAdmin } = useAuth()
   const [employees, setEmployees] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true)
+    // Non-admin: niente email/hourly_rate dei colleghi — solo le colonne necessarie
+    // per il calendario team (legenda colori + filtro nome).
+    const columns = isAdmin
+      ? '*'
+      : 'id, name, role, employment_type, color, created_at, updated_at'
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(columns)
       .eq('role', 'employee')
       .order('name')
     if (error) {
       setError(error.message)
     } else {
-      setEmployees(data as Profile[])
+      setEmployees(data as unknown as Profile[])
     }
     setLoading(false)
-  }, [])
+  }, [isAdmin])
 
   useEffect(() => {
     fetchEmployees()

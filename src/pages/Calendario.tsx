@@ -128,20 +128,19 @@ export default function Calendario() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            {/* Filter by employee */}
-            {isAdmin && (
-              <select
-                value={filterEmployee}
-                onChange={e => setFilterEmployee(e.target.value)}
-                className="flex-1 sm:flex-none bg-wine-800 border border-wine-600/50 rounded-xl px-3 py-2 text-sm text-cream focus:outline-none focus:border-gold-500/60 cursor-pointer"
-                aria-label="Filtra per dipendente"
-              >
-                <option value="all" className="bg-wine-800">Tutti i dipendenti</option>
-                {employees.map(e => (
-                  <option key={e.id} value={e.id} className="bg-wine-800">{e.name}</option>
-                ))}
-              </select>
-            )}
+            {/* Filter by employee — disponibile per admin E dipendenti
+                (i colleghi servono a coordinare accoppiamenti turni) */}
+            <select
+              value={filterEmployee}
+              onChange={e => setFilterEmployee(e.target.value)}
+              className="flex-1 sm:flex-none bg-wine-800 border border-wine-600/50 rounded-xl px-3 py-2 text-sm text-cream focus:outline-none focus:border-gold-500/60 cursor-pointer"
+              aria-label="Filtra per dipendente"
+            >
+              <option value="all" className="bg-wine-800">Tutto il team</option>
+              {employees.map(e => (
+                <option key={e.id} value={e.id} className="bg-wine-800">{e.name}</option>
+              ))}
+            </select>
             <Button
               variant="primary"
               size="sm"
@@ -283,17 +282,15 @@ export default function Calendario() {
           )}
         </motion.div>
 
-        {/* Legend */}
-        {isAdmin && (
-          <div className="flex flex-wrap gap-3 px-1">
-            {employees.map(emp => (
-              <div key={emp.id} className="flex items-center gap-1.5 text-xs text-cream-muted">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: emp.color }} />
-                {emp.name}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Legend — visibile a tutti per riconoscere i colleghi dai colori */}
+        <div className="flex flex-wrap gap-3 px-1">
+          {employees.map(emp => (
+            <div key={emp.id} className="flex items-center gap-1.5 text-xs text-cream-muted">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: emp.color }} />
+              {emp.name}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Day detail modal */}
